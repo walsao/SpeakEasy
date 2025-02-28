@@ -1,0 +1,237 @@
+/* SpeakEasy TTS Sidebar Styles */
+
+#speakeasy-tts-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 500px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#speakeasy-tts-sidebar.collapsed {
+  right: -490px; /* Keep only 10px visible when collapsed */
+}
+
+#speakeasy-tts-sidebar.expanded {
+  width: 900px; /* Wider when expanded */
+}
+
+#speakeasy-tts-sidebar.reading-mode {
+  width: 100%;
+  right: 0;
+}
+
+#speakeasy-tts-sidebar-frame {
+  border: none;
+  width: 100%;
+  height: 100%;
+  flex-grow: 1;
+}
+
+#speakeasy-tts-sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%) translateX(-100%);
+  width: 24px;
+  height: 50px;
+  background: #3b82f6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  user-select: none;
+}
+
+#speakeasy-tts-sidebar-toggle:hover {
+  opacity: 1;
+}
+
+#speakeasy-tts-sidebar-expand {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 28px;
+  height: 28px;
+  background: #3b82f6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  z-index: 1;
+  user-select: none;
+}
+
+#speakeasy-tts-sidebar-expand:hover {
+  opacity: 1;
+}
+
+/* Resize handle */
+#speakeasy-tts-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: ew-resize;
+  background: transparent;
+}
+
+#speakeasy-tts-resize-handle:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+#speakeasy-tts-resize-handle:active {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+/* Light mode styles */
+body.light {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.light .tts-container {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.light textarea {
+  background-color: #ffffff;
+  color: #1e293b;
+  border: 1px solid #cbd5e0;
+}
+
+.light .panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.light .panel-header {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.light .secondary-button {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e0;
+}
+
+.light .reading-display {
+  background: #ffffff;
+}
+
+.light .reading-header {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.light input[type="range"] {
+  background: #cbd5e0;
+}
+
+.light input[type="range"]::-webkit-slider-thumb {
+  background: #3b82f6;
+}
+
+.light .voice-panel {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Voice panel */
+.voice-panel {
+  background-color: #2d3748;
+  border: 1px solid #4a5568;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  width: 280px;
+  max-height: 80vh;
+  overflow-y: auto;
+  left: 10px !important; /* Force position to left side */
+  right: auto !important; /* Override any right setting */
+}
+
+/* Exit button styling */
+.exit-button {
+  background-color: #ef4444 !important; /* Dark red color */
+  color: white !important;
+  border: none !important;
+  font-weight: bold;
+}
+
+.exit-button:hover {
+  background-color: #dc2626 !important; /* Slightly darker red on hover */
+}
+
+/* Theme toggle positioning */
+.theme-toggle {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10001;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.theme-toggle:hover {
+  opacity: 1;
+}
+
+.dark .theme-toggle {
+  color: #f1f5f9; 
+  background-color: rgba(30, 41, 59, 0.5);
+}
+
+.light .theme-toggle {
+  color: #1e293b;
+  background-color: rgba(241, 245, 249, 0.5);
+}
+
+/* Hide UI when in reading mode */
+.speakeasy-tts-reading-mode #speakeasy-tts-sidebar-toggle,
+.speakeasy-tts-reading-mode #speakeasy-tts-sidebar-expand {
+  display: none;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 768px) {
+  #speakeasy-tts-sidebar {
+    width: 85vw;
+  }
+  
+  #speakeasy-tts-sidebar.collapsed {
+    right: calc(-85vw + 10px);
+  }
+  
+  #speakeasy-tts-sidebar.expanded {
+    width: 100vw;
+  }
+}

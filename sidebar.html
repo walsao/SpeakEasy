@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpeakEasy TTS</title>
+  <style>
+    /* Basic reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Dark mode - default */
+    body.dark {
+      background-color: #1e293b;
+      color: #e2e8f0;
+    }
+    
+    /* Light mode */
+    body.light {
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    
+    /* TTS Container */
+    .tts-container {
+      padding: 16px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto; /* Add scrolling */
+      max-height: 100vh;
+    }
+    
+    .tts-container.dark {
+      background-color: #1e293b;
+      color: #e2e8f0;
+    }
+    
+    .tts-container.light {
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    
+    .tts-title {
+      margin-bottom: 16px;
+      color: #3b82f6;
+      display: flex;
+      align-items: center;
+    }
+    
+    .premium-badge {
+      margin-left: 8px;
+      font-size: 12px;
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      padding: 3px 6px;
+      border-radius: 10px;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 160px;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+    }
+    
+    .dark textarea {
+      background-color: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+    
+    .light textarea {
+      background-color: #ffffff;
+      color: #1e293b;
+      border: 1px solid #cbd5e0;
+    }
+    
+    /* Playback controls */
+    .playback-controls {
+      margin-bottom: 16px;
+      position: relative; /* Added for absolute positioning of side buttons */
+    }
+    
+    .playback-progress-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+    
+    .progress-bar-container {
+      flex-grow: 1;
+      height: 20px;
+      position: relative;
+    }
+    
+    #playback-progress {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    
+    .dark #playback-progress {
+      background: #4a5568;
+    }
+    
+    .light #playback-progress {
+      background: #cbd5e0;
+    }
+    
+    #playback-progress::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #60a5fa;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    #current-time, #total-time {
+      font-size: 12px;
+      font-family: monospace;
+      min-width: 40px;
+    }
+    
+    .dark #current-time, .dark #total-time {
+      color: #a0aec0;
+    }
+    
+    .light #current-time, .light #total-time {
+      color: #64748b;
+    }
+    
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .primary-button {
+      padding: 8px 16px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .primary-button:hover {
+      background: #2563eb;
+    }
+    
+    .secondary-button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .dark .secondary-button {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+    
+    .dark .secondary-button:hover {
+      background: #4a5568;
+    }
+    
+    .light .secondary-button {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e0;
+    }
+    
+    .light .secondary-button:hover {
+      background: #e2e8f0;
+    }
+    
+    .media-button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    .dark .media-button {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+    
+    .dark .media-button:hover {
+      background: #4a5568;
+    }
+    
+    .light .media-button {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e0;
+    }
+    
+    .light .media-button:hover {
+      background: #e2e8f0;
+    }
+    
+    /* Side buttons */
+    .side-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+    }
+    
+    .dark .side-button {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+    
+    .dark .side-button:hover {
+      background: #4a5568;
+    }
+    
+    .light .side-button {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e0;
+    }
+    
+    .light .side-button:hover {
+      background: #e2e8f0;
+    }
+
+    .side-button.rewind {
+      left: -20px;
+    }
+
+    .side-button.forward {
+      right: -20px;
+    }
+    
+    /* Center the main play/stop controls */
+    .main-controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 auto;
+    }
+    
+    .icon-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .dark .icon-button {
+      color: #a0aec0;
+    }
+    
+    .light .icon-button {
+      color: #64748b;
+    }
+    
+    /* Voice Options Panel - Positioned in the center */
+    .panel {
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      max-height: 70vh; /* Limit height */
+      overflow-y: auto; /* Allow panel to scroll */
+      position: relative;
+      z-index: 5;
+    }
+    
+    .dark .panel {
+      background: #2d3748;
+      border: 1px solid #4a5568;
+    }
+    
+    .light .panel {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+    }
+    
+    /* Special styling for voice panel to position it in the center */
+    .voice-panel {
+      position: absolute;
+      width: 280px;
+      max-height: 80vh; /* Ensure panel doesn't extend beyond viewport */
+      overflow-y: auto; /* Make scrollable */
+      top: 80px; /* Position below the top bar */
+      left: 50%; /* Center horizontally */
+      transform: translateX(-50%); /* Center adjustment */
+      z-index: 1000;
+    }
+    
+    .dark .voice-panel {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .light .voice-panel {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      position: sticky;
+      top: 0;
+      padding: 4px 0;
+      backdrop-filter: blur(2px);
+      z-index: 6;
+    }
+    
+    .dark .panel-header {
+      background: rgba(45, 55, 72, 0.9);
+      border-bottom: 1px solid #4a5568;
+    }
+    
+    .light .panel-header {
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .panel-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .dark .panel-header h3 {
+      color: #e2e8f0;
+    }
+    
+    .light .panel-header h3 {
+      color: #1e293b;
+    }
+    
+    .setting-group {
+      margin-bottom: 16px;
+    }
+    
+    .setting-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .dark .setting-group label {
+      color: #e2e8f0;
+    }
+    
+    .light .setting-group label {
+      color: #1e293b;
+    }
+    
+    .full-width-input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    
+    .dark .full-width-input {
+      border: 1px solid #4a5568;
+      background-color: #1a202c;
+      color: #e2e8f0;
+    }
+    
+    .light .full-width-input {
+      border: 1px solid #cbd5e0;
+      background-color: #ffffff;
+      color: #1e293b;
+    }
+    
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .slider-label {
+      font-size: 12px;
+    }
+    
+    .dark .slider-label {
+      color: #a0aec0;
+    }
+    
+    .light .slider-label {
+      color: #64748b;
+    }
+    
+    input[type="range"] {
+      flex-grow: 1;
+      height: 6px;
+      -webkit-appearance: none;
+      border-radius: 3px;
+    }
+    
+    .dark input[type="range"] {
+      background: #4a5568;
+    }
+    
+    .light input[type="range"] {
+      background: #cbd5e0;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #60a5fa;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    .checkbox-setting {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .checkbox-setting input {
+      margin-right: 8px;
+    }
+    
+    /* Reading Display */
+    .reading-display {
+      padding: 16px;
+      border-radius: 8px;
+      flex: 1;
+      min-height: 200px;
+      overflow-y: auto;
+      transition: all 0.3s ease;
+    }
+    
+    .dark .reading-display {
+      background: #2d3748;
+    }
+    
+    .light .reading-display {
+      background: #ffffff;
+    }
+    
+    /* Reading Header - Make transparent */
+    .reading-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(2px);
+      padding: 4px 0;
+      z-index: 2;
+    }
+    
+    .dark .reading-header {
+      background: rgba(45, 55, 72, 0.7);
+    }
+    
+    .light .reading-header {
+      background: rgba(255, 255, 255, 0.7);
+    }
+    
+    .reading-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Black close button for voice panel */
+    .black-close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 100;
+    }
+
+    /* Style the exit fullscreen button to be more visible */
+    #exit-fullscreen-main {
+      color: #ef4444;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    
+    .reading-display.full-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      padding: 40px;
+      border-radius: 0;
+    }
+    
+    .dark .reading-display.full-screen {
+      background: #1a202c;
+    }
+    
+    .light .reading-display.full-screen {
+      background: #f8fafc;
+    }
+    
+    /* Theme toggle - Positioned at the top right corner */
+    .theme-toggle {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 10;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .dark .theme-toggle {
+      color: #f1f5f9;
+      background-color: rgba(30, 41, 59, 0.5);
+    }
+    
+    .light .theme-toggle {
+      color: #1e293b;
+      background-color: rgba(241, 245, 249, 0.5);
+    }
+    
+    /* Burgundy Exit Button in the main UI - always visible */
+    .exit-button-main {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      background-color: #800020 !important; /* Burgundy color */
+      color: white !important;
+      border: none !important;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 100;
+    }
+
+    .exit-button-main:hover {
+      background-color: #660019 !important; /* Darker burgundy on hover */
+    }
+    
+    /* Fixed fullscreen controls styling */
+    .fullscreen-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      z-index: 10001;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      align-items: center;
+    }
+    
+    .dark .fullscreen-controls {
+      background: rgba(26, 32, 44, 0.8);
+    }
+    
+    .light .fullscreen-controls {
+      background: rgba(248, 250, 252, 0.8);
+    }
+    
+    .reading-display.full-screen:hover .fullscreen-controls,
+    .fullscreen-controls:hover {
+      opacity: 1;
+    }
+    
+    /* Exit button styling */
+    .exit-button {
+      display: flex;
+      background-color: #800020 !important; /* Burgundy color */
+      color: white !important;
+      border: none !important;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      z-index: 10000;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .exit-button:hover {
+      background-color: #660019 !important; /* Darker burgundy on hover */
+    }
+    
+    /* Standalone fullscreen exit button visible in the corner */
+    .fullscreen-exit-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 10000;
+      padding: 8px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #800020; /* Burgundy color */
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      border: none;
+      display: none; /* Hidden by default */
+    }
+    
+    .fullscreen-exit-button:hover {
+      background-color: #660019; /* Darker on hover */
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Hide fullscreen exit container by default */
+    .fullscreen-exit-container {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 10000;
+      display: none;
+    }
+
+    .fullscreen-exit-container.visible {
+      display: block;
+    }
+    
+    /* Status indicator */
+    .status-indicator {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .dark .status-indicator {
+      background-color: #2d3748;
+      color: #a0aec0;
+    }
+    
+    .light .status-indicator {
+      background-color: #f1f5f9;
+      color: #64748b;
+    }
+    
+    .dark .status-indicator.error {
+      background-color: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+    }
+    
+    .light .status-indicator.error {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+    
+    .dark .status-indicator.success {
+      background-color: rgba(22, 163, 74, 0.2);
+      color: #4ade80;
+    }
+    
+    .light .status-indicator.success {
+      background-color: rgba(22, 163, 74, 0.1);
+      color: #16a34a;
+    }
+    
+    /* Responsive design for smaller screens */
+    @media (max-width: 768px) {
+      .button-row {
+        flex-direction: column;
+      }
+      
+      .reading-display.full-screen {
+        padding: 20px;
+      }
+      
+      .voice-panel {
+        width: 90%;
+        max-width: 280px;
+      }
+    }
+  </style>
+</head>
+<body class="dark">
+  <div id="speakeasy-tts-container" style="height: 100%;">
+    <!-- The enhanced TTS UI will be injected here by sidebar.js -->
+  </div>
+
+  <script src="sidebar.js"></script>
+</body>
+</html>
